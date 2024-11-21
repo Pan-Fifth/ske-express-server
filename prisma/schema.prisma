@@ -1,0 +1,124 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  email        String?  @unique
+  phone        String?
+  address      String?
+  password     String
+  profileImage String?
+  isVerify     Boolean  @default(false)
+  role         Role     @default(USER)
+  createAt     DateTime @default(now()) @map("create_at")
+  updateAt     DateTime @updatedAt @map("update_at")
+  order        Order[]  @relation("UserProducts")
+
+  @@map("users")
+}
+
+enum Role {
+  ADMIN @map("admin")
+  USER  @map("user")
+}
+
+model Buyer {
+  id       Int      @id @default(autoincrement())
+  name     String
+  rate     Float
+  fee      Float?
+  isActive Boolean  @default(true)
+  createAt DateTime @default(now()) @map("create_at")
+  updateAt DateTime @updatedAt @map("update_at")
+  order    Order[]  @relation("BuyerProducts")
+
+  @@map("buyer")
+}
+
+model Order {
+  id                 Int             @id @default(autoincrement())
+  orderDate          DateTime        @default(now()) @map("order_date")
+  orderNumber        String?         @unique
+  name               String?
+  detail             String?
+  webLink            String?         @map("web_link")
+  userId             Int             @map("user_id")
+  user               User            @relation("UserProducts", fields: [userId], references: [id])
+  sellingPrice       Float?          @map("selling_price")
+  deposite           Float?          @default(0.0)
+  depositeAt         DateTime?       
+  remain             Float?
+  userPaymentStatus  UserPayment     @default(NOT_PAY) @map("user_payment_status")
+  buyerId            Int             @map("buyer_id")
+  buyer              Buyer           @relation("BuyerProducts", fields: [buyerId], references: [id])
+  rate               Float?
+  fee                Float?
+  cost               Float?
+  trackingNo         String?         @map("tracking_no")
+  shippingStatus     ShippingStatus  @default(PENDING) @map("shipping_status")
+  buyerPaymentStatus BuyerPayment    @default(NOT_PAY) @map("buyer_payment_status")
+  createAt           DateTime        @default(now()) @map("create_at")
+  updateAt           DateTime        @updatedAt @map("update_at")
+  orderStatus        OrderStatus     @default(ONPROCESS)
+  productImages      ProductImage[]
+  ShippingPrice      ShippingPrice[]
+
+  @@map("orders")
+}
+
+enum OrderStatus {
+  ONPROCESS @map("onprocess")
+  COMPLETE  @map("complete")
+  CANCLE    @map("cancle")
+}
+
+enum UserPayment {
+  NOT_PAY  @map("not_pay")
+  DEPOSITE @map("deposite")
+  PAID     @map("paid")
+}
+
+enum BuyerPayment {
+  NOT_PAY @map("not_pay")
+  PAID    @map("paid")
+}
+
+model ProductImage {
+  id      Int    @id @default(autoincrement())
+  image   String
+  orderId Int    @map("product_id")
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("product_images")
+}
+
+enum ShippingStatus {
+  PENDING    @map("pending")
+  JP_WH      @map("jp_wh")
+  OUT_OF_JP  @map("out_of_jp")
+  ARRIVED_TH @map("arrived_th")
+  COMPLETE   @map("complete")
+}
+
+model ShippingPrice {
+  id       Int      @id @default(autoincrement())
+  orderId  Int      @map("product_id")
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  weight   Float?
+  arrive   DateTime @default(now()) @map("create_at")
+  updateAt DateTime @updatedAt @map("update_at")
+}
