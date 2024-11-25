@@ -100,7 +100,7 @@ exports.verification =async(req,res,next)=>{
       }
     })
     // res.json({message:"account has been verified",redirectUrl:"https://localhost:5173/login" })
-    res.redirect('http://localhost:5173/login')
+    res.redirect(`${process.env.FRONTEND_URL}/login`)
   } catch (err) {
     next(err)
   }
@@ -123,7 +123,7 @@ try {
       pass: process.env.EMAIL_PASS
     }
   })
-  const verificationLink =`http://localhost:5173/reset-password/${token}`
+  const verificationLink =`${process.env.FRONTEND_URL}/reset-password/${token}`
   
   await transporter.sendMail({
     to: email,
